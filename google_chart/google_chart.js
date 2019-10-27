@@ -5,9 +5,9 @@ var data_table;
 var current_tune_flag = true;
 var current_color_flag = true;
 var current_tensity = 0;
-
+var prefix = "../experiments/20191023/";
 var rawData = $.parseJSON($.ajax({
-    url: '/Users/pengzhenghao/Desktop/tmp/1023/test_data.json',
+    url: prefix + 'result.json',
     dataType: "json",
     async: false
 }).responseText);
@@ -23,16 +23,20 @@ function createCustomHTMLContent(videoPath) {
     // '</a>' +
 }
 
-function changeText(elementId, text) {
+function changeText(elementId, text, innerhtml = false) {
     var element = document.getElementById(elementId);
-    element.innerText = text;
+    if (innerhtml) {
+        element.innerHTML = text;
+    } else {
+        element.innerText = text;
+    }
 }
 
 function get_fig_title(method) {
     return method + " representation, " +
-        (current_tune_flag ? "fine-tuned" : "not fine-tuned") +
-        (typeof(current_tensity)==="string" ? "all noise tensity displayed" :  "noise tensity " +
-        current_tensity.toString())
+        (current_tune_flag ? "fine-tuned" : "no fine-tuned") +
+        (typeof (current_tensity) === "string" ? ", all noise tensity displayed" : ", noise tensity " +
+            current_tensity.toString())
 }
 
 
@@ -63,7 +67,7 @@ function drawChart() {
                         "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
                         "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
                     },
-                    // "legend": "none",
+                    "legend": "none",
                     "aggregationTarget": "none",
                     "selectionMode": "multiple",
                     "theme": "maximized",
@@ -71,6 +75,7 @@ function drawChart() {
                 },
                 "view": {'columns': cluster_column_indices} // show all points regard of std.
             });
+
         filter = new google.visualization.ControlWrapper({
             'controlType': 'CategoryFilter',
             'containerId': 'control_div',
@@ -95,7 +100,7 @@ function drawChart() {
     }
 
     function get_exact_std(slider_value) {
-        return figure_info['tensities'][slider_value] / tensity_multiplier
+        return figure_info['tensities'][slider_value]
     }
 
 // Create the slider for std changing
@@ -114,14 +119,14 @@ function drawChart() {
         }
         current_tensity = "All of: \n" + dis_str;
         changeText("title_of_table", rawData['web_info']['title']);
-        changeText("introduction", rawData['web_info']['introduction']);
+        changeText("introduction", rawData['web_info']['introduction'], true);
         changeText("tensity", current_tensity);
 
         document.getElementById('disable_color_button').innerHTML =
             "Click to disable clustering";
         // changeText("disable_color_button", "Click to disable clustering");
         // changeText("tensity2", "all");
-        // changeText("finetuned", "all");
+        changeText("finetune", "Fine-tuned");
         changeText("update_date", rawData['web_info']['update_date']);
     }
 
@@ -134,37 +139,56 @@ function drawChart() {
 
         cluster_column_indices = [0];
 
-        for (i = 0; i < cluster_indices.length; i++) {
-            cluster_indices_map[cluster_indices[i]] = i + 1;
-            cluster_column_indices.push(i + 1);
-            // the column index for clusters.
-        }
-
         var new_data_table = new google.visualization.DataTable();
+        var tooltips_col_indices = [];
 
         new_data_table.addColumn('number', 'x', 'x');
         for (i = 0; i < cluster_indices.length; i++) {
             var name = "cluster" + cluster_indices[i].toString();
             new_data_table.addColumn('number', name, name);
+            new_data_table.addColumn(
+                {
+                    'type': 'string',
+                    'role': 'tooltip',
+                    'p': {'html': true}
+                }
+            );
+            cluster_indices_map[cluster_indices[i]] = 2 * i + 1;
+            cluster_column_indices.push(i * 2 + 1);
+            cluster_column_indices.push(i * 2 + 2);
+            tooltips_col_indices.push(i * 2 + 2);
         }
         new_data_table.addColumn('number', 'tensity', 'tensity');
         new_data_table.addColumn('string', 'method', 'method');
 
         new_data_table.addRows(old_data_table.getNumberOfRows());
+
         var tensity_col_id = new_data_table.getColumnIndex("tensity");
         var method_col_id = new_data_table.getColumnIndex("method");
+
         for (i = 0; i < old_data_table.getNumberOfRows(); i++) {
             new_data_table.setCell(i, 0, old_data_table.getValue(i, 0));
+
             new_data_table.setCell(i,
                 cluster_indices_map[old_data_table.getValue(i, 2)],
                 old_data_table.getValue(i, 1)
             );
+            for (var y = 0; y < tooltips_col_indices.length; y++) {
+                new_data_table.setCell(i,
+                    tooltips_col_indices[y],
+                    old_data_table.getValue(i, 5)
+                );
+            }
+
             new_data_table.setCell(i, tensity_col_id,
                 old_data_table.getValue(i, 3));
             new_data_table.setCell(i, method_col_id,
                 old_data_table.getValue(i, 4));
-        }
+            new_data_table.setRowProperties(i, old_data_table.getRowProperties(i));
 
+
+        }
+        console.log(new_data_table);
         return new_data_table;
     }
 
@@ -175,15 +199,9 @@ function drawChart() {
         if (current_tune_flag) {
             newData = rawData['data']['fine_tuned']
         } else {
-            newData = rawData['data']['not_fine_tuned']
+            newData = rawData['data']['no_fine_tuned']
         }
         data_table = new google.visualization.DataTable(newData);
-
-        if (current_color_flag) {
-            data_table = parse_data_table(data_table);
-        } else {
-            cluster_column_indices = [0, 1];
-        }
 
         // Fill the tooltip
         data_table.addColumn(
@@ -193,16 +211,18 @@ function drawChart() {
                 'p': {'html': true}
             }
         );
-
         var url, cell_html, row, extra;
         for (row = 0; row < data_table.getNumberOfRows(); row++) {
-            url = data_table.getRowProperty(row, "url");
-            if (url === null) {
-                cell_html = '<p>No Video Provided</p>';
-            } else {
+
+            if (data_table.getRowProperty(row, "path")) {
+                url = prefix + data_table.getRowProperty(row, "path").replace("./", "");
                 cell_html = createCustomHTMLContent(url)
+            } else {
+                cell_html = '<p>No Video Provided</p>';
             }
-            extra = data_table.getRowProperty(row, "extra");
+            if (data_table.getRowProperty(row, "reward")) {
+                extra = "Reward: " + data_table.getRowProperty(row, "reward").toFixed(1);
+            }
             if (extra !== null) {
                 cell_html = cell_html +
                     '<br><p style="max-width: 80px;' +
@@ -211,6 +231,12 @@ function drawChart() {
             cell_html = '<dev style="padding:0 0 0 0">' + cell_html
                 + '</dev>';
             data_table.setCell(row, data_table.getNumberOfColumns() - 1, cell_html);
+        }
+
+        if (current_color_flag) {
+            data_table = parse_data_table(data_table);
+        } else {
+            cluster_column_indices = [0, 1, 5];
         }
     }
 
@@ -251,8 +277,9 @@ function drawChart() {
 ////////// Event Handler //////////
     function set_lim() {
         var method = filter.getState()['selectedValues'][0];
-        var xlim = figure_info['xlim'][method];
-        var ylim = figure_info['ylim'][method];
+        var tuned_str = current_tune_flag ? "fine_tuned" : "no_fine_tuned"
+        var xlim = figure_info['xlim'][tuned_str][method];
+        var ylim = figure_info['ylim'][tuned_str][method];
         var dx = 0.1 * (xlim[1] - xlim[0]);
         var dy = 0.1 * (ylim[1] - ylim[0]);
         chart.setOption("hAxis.viewWindow.min", xlim[0] - dx);
@@ -267,14 +294,14 @@ function drawChart() {
 
     change2FineTuned = function () {
         current_tune_flag = true;
-        setup_data_table();
-        flush();
+        init();
+        changeText("finetune", "Fine-tuned");
     };
 
     change2NotFineTuned = function () {
         current_tune_flag = false;
-        setup_data_table();
-        flush();
+        init();
+        changeText("finetune", "Not Fine-tuned");
     };
 
     reset_slider = function () {

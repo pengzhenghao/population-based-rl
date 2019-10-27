@@ -1,10 +1,6 @@
 <html>
 <head>
     <style>
-        .step1 {
-            text-space: 2em;
-        }
-
         .step {
             padding-top: 2em;
             padding-bottom: 0.5em;
@@ -55,7 +51,6 @@ Placeholder for this html file:
     1. title_of_table
     2. introduction
     3. tensity (control by slider)
-    4. tensity2 (same)
     5. finetuned (control by a button)
     6. update_date
 -->
@@ -81,16 +76,7 @@ Placeholder for this html file:
     </tr>
     <tr>
         <td>
-
             <div id="control_div"></div>
-            <!--            <button style="margin: 1em 1em 0 2em; width:10em;"-->
-            <!--                    onclick="changeRange();">-->
-            <!--                Button 1-->
-            <!--            </button>-->
-            <!--            <button style="margin: 1em 1em 0 2em; width:10em;"-->
-            <!--                    onclick="changeOptions();">-->
-            <!--                Button 2-->
-            <!--            </button>-->
         </td>
     </tr>
     <tr>
@@ -101,6 +87,7 @@ Placeholder for this html file:
     <tr>
         <td>
             Note that we do not provides videos of the not fine-tuned agents.
+            Current: <b><span id="finetune"></span></b>
         </td>
     </tr>
     <tr>
@@ -133,12 +120,6 @@ Placeholder for this html file:
             Current Noise Tensity (STD): <span id="tensity"></span>
         </td>
     </tr>
-    <!--    <tr>-->
-    <!--        <th class="step">-->
-    <!--            Step 4: Enjoy the <span id="finetuned"></span> agents at the noise-->
-    <!--            tensity <span id="tensity2"></span>!-->
-    <!--        </th>-->
-    <!--    </tr>-->
     <tr align="center">
         <td>
             <div id="dashboard_div">
