@@ -5,9 +5,9 @@ var data_table;
 var current_tune_flag = true;
 var current_color_flag = true;
 var current_tensity = 0;
-var prefix = "../experiments/20191023/";
+var prefix = "";
 var rawData = $.parseJSON($.ajax({
-    url: prefix + 'result.json',
+    url: file_path,
     dataType: "json",
     async: false
 }).responseText);
