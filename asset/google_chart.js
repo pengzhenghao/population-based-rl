@@ -112,7 +112,8 @@ function drawChart() {
                     "interpolateNulls": true,
                     'legend': {
                         "position": "bottom",
-                        "textStyle": {"fontSize": 11}
+                        "textStyle": {"fontSize": 11},
+                        "maxLines": 10,
                     },
                     "series": linechart_series_options,
                     "vAxes": {
@@ -444,7 +445,6 @@ function drawChart() {
 
     init();
 
-////////// Event Handler //////////
     function set_lim() {
         var method = filter.getState()['selectedValues'][0];
         var tuned_str = current_tune_flag ? "fine_tuned" : "no_fine_tuned"
@@ -462,14 +462,20 @@ function drawChart() {
 
     change2FineTuned = function () {
         current_tune_flag = true;
-        init();
+        // init();
+        setup_data_table();
         changeText("finetune", "Fine-tuned");
+        set_lim();
+        flush();
     };
 
     change2NotFineTuned = function () {
         current_tune_flag = false;
-        init();
+        // init();
+        setup_data_table();
         changeText("finetune", "Not Fine-tuned");
+        set_lim();
+        flush();
     };
 
     reset_slider = function () {
@@ -516,6 +522,33 @@ function drawChart() {
         linechart_filter_fine_tuned.draw();
         linechart_dashboard.draw(linechart_data_table);
     };
+
+    function get_selectedValues_list() {
+        var l_fine_tuned = [];
+        var l_no_fine_tuned = [];
+        var labels = linechart_data_table.getDistinctValues(
+            linechart_data_table.getColumnIndex("label"));
+
+        for (var i = 0; i < labels.length; i++) {
+            if (labels[i].endsWith("no_fine_tuned")) {
+                l_fine_tuned.push(labels[i])
+            } else (
+                l_no_fine_tuned.push(labels[i])
+            )
+        }
+
+        return [l_fine_tuned, l_no_fine_tuned]
+    }
+
+    linechart_no_fine_tuned = function () {
+        linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[0]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
+
+    linechart_fine_tuned = function () {
+        linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[1]});
+        linechart_dashboard.draw(linechart_data_table);
+    }
 
 
 }
