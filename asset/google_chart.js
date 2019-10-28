@@ -100,23 +100,41 @@ function drawChart() {
         dashboard.draw(data_table);
     }
 
-    function build_line_chartdashboard() {
+    function build_line_chartdashboard(linechart_series_options) {
         var linechart_chart = new google.visualization.ChartWrapper(
             {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
+                    'legend': {"position": "bottom", "textStyle": {"fontSize": 11}},
+                    "series": linechart_series_options,
+                    "vAxes": {
+                        0: {
+                            "title": "Episode Reward",
+                            "gridlines": {"color": 'none'}
+                        },
+                        1: {
+                            "title": "Episode Length",
+                            "gridlines": {"color": 'none'},
+                            "textPosition": 'in'
+                        },
+                        2: {
+                            "title": "Normalized Distance"
+                        },
+                    },
                     "tooltip": {"isHtml": true, "trigger": "selection"},
                     // "title": figure_info['title'],
                     "hAxis": {
+                        // "gridlines": {"color": 'none'},
                         "title": figure_info['xlabel'],
-                        "minValue": figure_info['xlim'] ? figure_info['xlim'][0] : null,
-                        "maxValue": figure_info['xlim'] ? figure_info['xlim'][1] : null
+                        // "minValue": figure_info['xlim'] ? figure_info['xlim'][0] : null,
+                        // "maxValue": figure_info['xlim'] ? figure_info['xlim'][1] : null
                     },
                     "vAxis": {
-                        "title": figure_info['ylabel'],
-                        "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
-                        "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
+                        // "gridlines": {"color": 'none'},
+                        // "title": figure_info['ylabel'],
+                        // "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
+                        // "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
                     },
                     // "legend": "none",
                     "aggregationTarget": "none",
@@ -137,7 +155,7 @@ function drawChart() {
                     'allowNone': false,
                     "allowMultiple": true,
                     "allowTyping": false,
-                    // "labelStacking": 'vertical',
+                    "labelStacking": 'vertical',
                 }
             },
             'state': {
@@ -235,7 +253,6 @@ function drawChart() {
                 old_data_table.getValue(i, 4));
             new_data_table.setRowProperties(i, old_data_table.getRowProperties(i));
         }
-        // console.log(new_data_table);
         return new_data_table;
     }
 
@@ -295,30 +312,36 @@ function drawChart() {
         }
         var tmp_datatable = new google.visualization.DataTable(newData);
         linechart_data_table = new google.visualization.DataTable();
-
-
         linechart_data_table.addColumn("number", "intensity", "intensity");
 
         var unique_labels = tmp_datatable.getDistinctValues(
             tmp_datatable.getColumnIndex("label"));
 
         linechart_cluster_column_indices = [0];
+
+
+        var linechart_series_options = {};
+
         var label_column_index_map = {};
         for (var i = 0; i < unique_labels.length; i++) {
+            if (unique_labels[i].startsWith("episode")) {
+                linechart_series_options[i] = {
+                    "targetAxisIndex": (unique_labels[i] === "episode_reward_mean") ? 0 : 1
+                }
+            } else {
+                linechart_series_options[i] = {"targetAxisIndex": 2}
+            }
             linechart_data_table.addColumn("number", unique_labels[i], unique_labels[i]);
             label_column_index_map[unique_labels[i]] = i + 1;
             linechart_cluster_column_indices.push(i + 1);
         }
         linechart_data_table.addColumn("string", "label", "label");
 
-        // linechart_cluster_column_indices.push(linechart_data_table.getColumnIndex("label"));
         linechart_data_table.addRows(tmp_datatable.getNumberOfRows());
-
         for (var row = 0; row < tmp_datatable.getNumberOfRows(); row++) {
             linechart_data_table.setCell(row, 0, tmp_datatable.getValue(
                 row, 0
             ));
-
             var observe_column;
             if (tmp_datatable.getValue(row, 2).startsWith("episode")) {
                 observe_column = 1
@@ -337,7 +360,8 @@ function drawChart() {
                     row, 2
                 ));
         }
-        console.log(linechart_data_table);
+        // console.log(linechart_data_table);
+        return linechart_series_options
     }
 
     function flush() {
@@ -367,9 +391,9 @@ function drawChart() {
     function init() {
         build_slider();
         setup_data_table();
-        setup_linechart_data_table();
+        var linechart_series_options = setup_linechart_data_table();
         build_dashboard();
-        build_line_chartdashboard();
+        build_line_chartdashboard(linechart_series_options);
         set_lim();
         flush();
     }
