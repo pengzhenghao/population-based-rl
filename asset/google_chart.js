@@ -108,7 +108,9 @@ function drawChart() {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
-                    // "curveType": "function",
+                    'chartArea': {'width': '90%', 'height': '80%'},
+                    'pointSize': 4,
+                    "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
                         "position": "bottom",
@@ -515,8 +517,8 @@ function drawChart() {
                 "episode_reward_mean_no_fine_tuned",
                 "cka_mean_fine_tuned",
                 "cka_mean_no_fine_tuned",
-                // "js_mean_fine_tuned",
-                // "js_mean_no_fine_tuned"
+                "episode_length_mean_fine_tuned",
+                "episode_length_mean_no_fine_tuned",
             ]
         });
         linechart_filter_fine_tuned.draw();
