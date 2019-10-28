@@ -69,7 +69,7 @@ function drawChart() {
                         "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
                         "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
                     },
-                    "legend": "none",
+                    // "legend": "none",
                     "aggregationTarget": "none",
                     "selectionMode": "multiple",
                     "theme": "maximized",
@@ -201,7 +201,7 @@ function drawChart() {
         changeText("tensity", current_tensity);
 
         document.getElementById('disable_color_button').innerHTML =
-            "Click to disable clustering";
+            "Disable clustering";
         changeText("finetune", "Fine-tuned");
         changeText("update_date", rawData['web_info']['update_date']);
     }
@@ -449,15 +449,20 @@ function drawChart() {
         flush();
         var button = document.getElementById('disable_color_button');
         if (current_color_flag) {
-            button.innerHTML = "Click to disable clustering";
+            button.innerHTML = "Disable clustering";
         } else {
-            button.innerHTML = "Click to enable clustering";
+            button.innerHTML = "Enable clustering";
         }
     };
 
     remove_selection = function () {
-        linechart_filter.setState({"selectedValues": ["cka_mean"]});
+        // linechart_filter.setState({
+        //     "selectedValues": [linechart_data_table.getDistinctValues(
+        //         linechart_data_table.getColumnIndex("label"))[0]]
+        // });
+        linechart_filter.setState({"selectedValues": ["episode_reward_mean"]});
         linechart_dashboard.draw(linechart_data_table);
-    };
+    }
+    ;
 
 }
