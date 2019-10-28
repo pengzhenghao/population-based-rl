@@ -108,7 +108,7 @@ function drawChart() {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
-                    "curveType": "function",
+                    // "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
                         "position": "bottom",
@@ -306,7 +306,7 @@ function drawChart() {
         var label_column_index_map = {};
 
         var newData = rawData['linechart_data']['fine_tuned'];
-        var newData2 = rawData['linechart_data']['fine_tuned'];
+        var newData2 = rawData['linechart_data']['no_fine_tuned'];
 
         var tmp_datatable = new google.visualization.DataTable(newData);
         var tmp_datatable2 = new google.visualization.DataTable(newData2);
@@ -362,7 +362,7 @@ function drawChart() {
             }
             linechart_data_table.setCell(
                 row,
-                label_column_index_map[tmp_datatable.getValue(row, 2) + "_fine_tuned"],
+                linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_fine_tuned"),
                 tmp_datatable.getValue(row, observe_column));
 
             // set label
@@ -374,9 +374,7 @@ function drawChart() {
                 ) + "_fine_tuned");
         }
 
-        console.log(111);
-
-        var offset = tmp_datatable.getNumberOfRows()
+        var offset = tmp_datatable.getNumberOfRows();
 
         for (var row = 0; row < (tmp_datatable2.getNumberOfRows()); row++) {
 
@@ -385,7 +383,6 @@ function drawChart() {
                 row, 0
             ));
 
-        console.log(222);
             // set y
             var observe_column;
             if (tmp_datatable2.getValue(row, 2).startsWith("episode")) {
@@ -395,7 +392,6 @@ function drawChart() {
             }
             linechart_data_table.setCell(
                 row + offset,
-                // label_column_index_map[tmp_datatable2.getValue(row, 2) + "_no_fine_tuned"],
                 linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_no_fine_tuned"),
                 tmp_datatable2.getValue(row, observe_column));
 
@@ -512,11 +508,14 @@ function drawChart() {
                 "episode_reward_mean_fine_tuned",
                 "episode_reward_mean_no_fine_tuned",
                 "cka_mean_fine_tuned",
-                "cka_mean_no_fine_tuned"
+                "cka_mean_no_fine_tuned",
+                // "js_mean_fine_tuned",
+                // "js_mean_no_fine_tuned"
             ]
         });
-        // linechart_filter_fine_tuned.setState({"selectedValues": ["episode_reward_mean"]});
+        linechart_filter_fine_tuned.draw();
         linechart_dashboard.draw(linechart_data_table);
     };
+
 
 }
