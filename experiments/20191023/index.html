@@ -41,16 +41,18 @@
             cursor: pointer;
         }
     </style>
-    <script type="text/javascript" src="jquery-3.4.1.min.js"></script>
-    <script type="text/javascript" src="loader.js"></script>
-    <script type="text/javascript" src="google_chart.js"></script>
+    <script type="text/javascript">var file_path = "result.json"</script>
+    <script type="text/javascript"
+            src="../../asset/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../../asset/loader.js"></script>
+    <script type="text/javascript" src="../../asset/google_chart.js"></script>
 </head>
 <body>
 <!--
 Placeholder for this html file:
     1. title_of_table
     2. introduction
-    3. tensity (control by slider)
+    3. intensity (control by slider)
     5. finetuned (control by a button)
     6. update_date
 -->
@@ -104,7 +106,7 @@ Placeholder for this html file:
     </tr>
     <tr>
         <th class="step">
-            Step 3: Choose a tensity of noise.
+            Step 3: Choose a intensity of noise.
         </th>
     </tr>
     <tr>
@@ -117,15 +119,17 @@ Placeholder for this html file:
     </tr>
     <tr>
         <td>
-            Current Noise Tensity (STD): <span id="tensity"></span>
+            Current Noise Intensity (STD): <span id="tensity"></span>
         </td>
     </tr>
     <tr align="center">
         <td>
             <div id="dashboard_div">
-                <div id="chart_div"
-                     style="width: 900px; height: 900px; padding: 2em"></div>
-                <!--                Choose a clustering algorithm.-->
+                <div style="padding: 2em">
+                    <div id="chart_div"
+                         style="width: 900px; height: 900px;">
+                    </div>
+                </div>
             </div>
         </td>
     </tr>
@@ -148,7 +152,7 @@ Placeholder for this html file:
         <td>
             <button style="width:20em; margin: 1em 1em 1em 2em;;"
                     onclick="reset_slider();">
-                Reset
+                Reset the figure
             </button>
         </td>
     </tr>
@@ -160,7 +164,70 @@ Placeholder for this html file:
             </button>
         </td>
     </tr>
+    <tr>
+        <th class="step">
+            Step 4: Play with the experiment's result figure
+        </th>
+    </tr>
+    <tr>
+        <td>
+            Note that the figure here is not affected by your operations above.
+        </td>
+    </tr>
+    <!--    <tr>-->
+    <!--        <td>-->
+    <!--            Note that we do not provides videos of the not fine-tuned agents.-->
+    <!--            Current: <b><span id="finetune"></span></b>-->
+    <!--        </td>-->
+    <!--    </tr>-->
+    <tr align="center">
+        <td>
+            <div id="linechart_dashboard_div">
+                <div style="padding: 2em">
+                    <div id="linechart_div"
+                         style="width: 900px; height: 600px; "></div>
+                    <div style="width: 900px; padding: 2em">
+                        <div id="linechart_control_div"></div>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="remove_selection();">
+                Remove all selection
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="clearest_collecion();">
+                Best figure (Click Me!)
+            </button>
+        </td>
+    </tr>
+        <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="linechart_fine_tuned();">
+                Only show fine-tuned
+            </button>
+        </td>
+    </tr>
+        <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="linechart_no_fine_tuned();">
+                Only show not fine-tuned
+            </button>
+        </td>
+    </tr>
 </table>
+
+
 <div style="max-width: 900px; padding-top:10em; padding-bottom: 4em; text-align: center; font-size: 50%">
     The data used at this web page was collected on <span
         id="update_date"></span>.<br>

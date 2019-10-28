@@ -2,17 +2,18 @@ google.charts.load('current', {'packages': ['corechart', 'controls']});
 google.charts.setOnLoadCallback(drawChart);
 
 var data_table;
+var linechart_data_table;
 var current_tune_flag = true;
 var current_color_flag = true;
 var current_tensity = 0;
-var prefix = "../experiments/20191023/";
+var prefix = "";
 var rawData = $.parseJSON($.ajax({
-    url: prefix + 'result.json',
+    url: file_path,
     dataType: "json",
     async: false
 }).responseText);
 
-var chart;
+// var chart;
 
 function createCustomHTMLContent(videoPath) {
     return "" +
@@ -45,9 +46,11 @@ function drawChart() {
     const figure_info = rawData['figure_info'];
     const tensity_multiplier = figure_info['tensity_multiplier'];
 
-    var dashboard, slider, filter;
+    var dashboard, slider, filter, chart, linechart_dashboard,
+        linechart_filter_fine_tuned,
+        linechart_chart;
 
-    var cluster_column_indices;
+    var cluster_column_indices, linechart_cluster_column_indices;
 
     function build_dashboard() {
         chart = new google.visualization.ChartWrapper(
@@ -67,7 +70,7 @@ function drawChart() {
                         "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
                         "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
                     },
-                    "legend": "none",
+                    // "legend": "none",
                     "aggregationTarget": "none",
                     "selectionMode": "multiple",
                     "theme": "maximized",
@@ -99,6 +102,75 @@ function drawChart() {
         dashboard.draw(data_table);
     }
 
+    function build_line_chartdashboard(linechart_series_options) {
+        linechart_chart = new google.visualization.ChartWrapper(
+            {
+                "chartType": "LineChart",
+                "containerId": "linechart_div",
+                "options": {
+                    'chartArea': {'width': '90%', 'height': '80%'},
+                    'pointSize': 4,
+                    "curveType": "function",
+                    "interpolateNulls": true,
+                    'legend': {
+                        "position": "bottom",
+                        "textStyle": {"fontSize": 11},
+                        "maxLines": 10,
+                    },
+                    "series": linechart_series_options,
+                    "vAxes": {
+                        0: {
+                            "title": "Episode Reward",
+                            "gridlines": {"color": 'none'}
+                        },
+                        1: {
+                            "title": "Episode Length",
+                            "gridlines": {"color": 'none'},
+                            "textPosition": 'in'
+                        },
+                        2: {
+                            "title": "Normalized Distance",
+                            "option": {
+                                "minValue": 0,
+                                "maxvalue": 1,
+                            }
+                        },
+                    },
+                    "tooltip": {"trigger": "both"},
+                    "hAxis": {
+                        "title": figure_info['xlabel'],
+                    },
+                },
+                "view": {'columns': linechart_cluster_column_indices} // show all points regard of std.
+            });
+
+        linechart_filter_fine_tuned = new google.visualization.ControlWrapper({
+            'controlType': 'CategoryFilter',
+            'containerId': 'linechart_control_div',
+            'options': {
+                'filterColumnLabel': "label",
+                'ui': {
+                    'label': 'Distance Measurements',
+                    'allowNone': true,
+                    "allowMultiple": true,
+                    "allowTyping": false,
+                    "labelStacking": 'vertical',
+                }
+            },
+            'state': {
+                'selectedValues': linechart_data_table.getDistinctValues(
+                    linechart_data_table.getColumnIndex("label"))
+            }
+        });
+
+        var linechart_data_view = new google.visualization.DataView(linechart_data_table);
+
+        linechart_dashboard = new google.visualization.Dashboard(
+            document.getElementById('linechart_dashboard_div'));
+        linechart_dashboard.bind(linechart_filter_fine_tuned, linechart_chart);
+        linechart_dashboard.draw(linechart_data_view);
+    }
+
     function get_exact_std(slider_value) {
         return figure_info['tensities'][slider_value]
     }
@@ -123,9 +195,7 @@ function drawChart() {
         changeText("tensity", current_tensity);
 
         document.getElementById('disable_color_button').innerHTML =
-            "Click to disable clustering";
-        // changeText("disable_color_button", "Click to disable clustering");
-        // changeText("tensity2", "all");
+            "Disable clustering";
         changeText("finetune", "Fine-tuned");
         changeText("update_date", rawData['web_info']['update_date']);
     }
@@ -179,21 +249,15 @@ function drawChart() {
                     old_data_table.getValue(i, 5)
                 );
             }
-
             new_data_table.setCell(i, tensity_col_id,
                 old_data_table.getValue(i, 3));
             new_data_table.setCell(i, method_col_id,
                 old_data_table.getValue(i, 4));
             new_data_table.setRowProperties(i, old_data_table.getRowProperties(i));
-
-
         }
-        console.log(new_data_table);
         return new_data_table;
     }
 
-
-////////// Step 2: Define some useful function //////////
     function setup_data_table() {
         var newData;
         if (current_tune_flag) {
@@ -240,6 +304,113 @@ function drawChart() {
         }
     }
 
+    function setup_linechart_data_table(need_add_column = true, row_offset = 0, col_offset = 0) {
+        var linechart_series_options = {};
+        var label_column_index_map = {};
+
+        var newData = rawData['linechart_data']['fine_tuned'];
+        var newData2 = rawData['linechart_data']['no_fine_tuned'];
+
+        var tmp_datatable = new google.visualization.DataTable(newData);
+        var tmp_datatable2 = new google.visualization.DataTable(newData2);
+
+        linechart_data_table = new google.visualization.DataTable();
+        linechart_data_table.addColumn("number", "intensity", "intensity");
+
+        var unique_labels = tmp_datatable.getDistinctValues(
+            tmp_datatable.getColumnIndex("label"));
+
+        linechart_cluster_column_indices = [0];
+
+        for (var i = 0; i < unique_labels.length; i++) {
+            var d;
+            if (unique_labels[i].startsWith("episode")) {
+                d = {
+                    "targetAxisIndex": (unique_labels[i].startsWith("episode_reward")) ? 0 : 1
+                };
+            } else {
+                d = {"targetAxisIndex": 2}
+            }
+            linechart_series_options[2 * i] = d;
+            linechart_series_options[2 * i + 1] = d;
+
+            linechart_data_table.addColumn("number", unique_labels[i] + "_fine_tuned", unique_labels[i] + "_fine_tuned");
+            linechart_data_table.addColumn("number", unique_labels[i] + "_no_fine_tuned", unique_labels[i] + "_no_fine_tuned");
+            label_column_index_map[unique_labels[i] + "_fine_tuned"] = 2 * i + 1;
+            label_column_index_map[unique_labels[i] + "_no_fine_tuned"] = 2 * i + 2;
+            linechart_cluster_column_indices.push(2 * i + 1);
+            linechart_cluster_column_indices.push(2 * i + 2);
+        }
+
+
+        console.log(linechart_series_options);
+
+        linechart_data_table.addColumn("string", "label", "label");
+
+        linechart_data_table.addRows(tmp_datatable.getNumberOfRows() + tmp_datatable2.getNumberOfRows());
+
+        for (var row = 0; row < tmp_datatable.getNumberOfRows(); row++) {
+
+            // set x
+            linechart_data_table.setCell(row, 0, tmp_datatable.getValue(
+                row, 0
+            ));
+
+            // set y
+            var observe_column;
+            if (tmp_datatable.getValue(row, 2).startsWith("episode")) {
+                observe_column = 1
+            } else {
+                observe_column = 3
+            }
+            linechart_data_table.setCell(
+                row,
+                linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_fine_tuned"),
+                tmp_datatable.getValue(row, observe_column));
+
+            // set label
+            linechart_data_table.setCell(
+                row,
+                linechart_data_table.getColumnIndex("label"),
+                tmp_datatable.getValue(
+                    row, 2
+                ) + "_fine_tuned");
+        }
+
+        var offset = tmp_datatable.getNumberOfRows();
+
+        for (var row = 0; row < (tmp_datatable2.getNumberOfRows()); row++) {
+
+            // set x
+            linechart_data_table.setCell(row + offset, 0, tmp_datatable2.getValue(
+                row, 0
+            ));
+
+            // set y
+            var observe_column;
+            if (tmp_datatable2.getValue(row, 2).startsWith("episode")) {
+                observe_column = 1
+            } else {
+                observe_column = 3
+            }
+            linechart_data_table.setCell(
+                row + offset,
+                linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_no_fine_tuned"),
+                tmp_datatable2.getValue(row, observe_column));
+
+            // set label
+            linechart_data_table.setCell(
+                row + offset,
+                linechart_data_table.getColumnIndex("label"),
+                tmp_datatable2.getValue(
+                    row, 2
+                ) + "_no_fine_tuned");
+        }
+
+
+        return linechart_series_options
+    }
+
     function flush() {
         update_data_view();
         changeText("tensity", current_tensity);
@@ -267,14 +438,15 @@ function drawChart() {
     function init() {
         build_slider();
         setup_data_table();
+        var linechart_series_options = setup_linechart_data_table();
         build_dashboard();
+        build_line_chartdashboard(linechart_series_options);
         set_lim();
         flush();
     }
 
     init();
 
-////////// Event Handler //////////
     function set_lim() {
         var method = filter.getState()['selectedValues'][0];
         var tuned_str = current_tune_flag ? "fine_tuned" : "no_fine_tuned"
@@ -288,20 +460,24 @@ function drawChart() {
         chart.setOption("vAxis.viewWindow.max", ylim[1] + dy);
     }
 
-
-// Change method
     google.visualization.events.addListener(filter, 'statechange', set_lim);
 
     change2FineTuned = function () {
         current_tune_flag = true;
-        init();
+        // init();
+        setup_data_table();
         changeText("finetune", "Fine-tuned");
+        set_lim();
+        flush();
     };
 
     change2NotFineTuned = function () {
         current_tune_flag = false;
-        init();
+        // init();
+        setup_data_table();
         changeText("finetune", "Not Fine-tuned");
+        set_lim();
+        flush();
     };
 
     reset_slider = function () {
@@ -319,10 +495,62 @@ function drawChart() {
         flush();
         var button = document.getElementById('disable_color_button');
         if (current_color_flag) {
-            button.innerHTML = "Click to disable clustering";
+            button.innerHTML = "Disable clustering";
         } else {
-            button.innerHTML = "Click to enable clustering";
+            button.innerHTML = "Enable clustering";
         }
+    };
+
+    remove_selection = function () {
+        // linechart_filter_fine_tuned.setState({
+        //     "selectedValues": [linechart_data_table.getDistinctValues(
+        //         linechart_data_table.getColumnIndex("label"))[0]]
+        // });
+        linechart_filter_fine_tuned.setState({"selectedValues": ["episode_reward_mean"]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
+
+    clearest_collecion = function () {
+        linechart_filter_fine_tuned.setState({
+            "selectedValues": [
+                "episode_reward_mean_fine_tuned",
+                "episode_reward_mean_no_fine_tuned",
+                "cka_mean_fine_tuned",
+                "cka_mean_no_fine_tuned",
+                "episode_length_mean_fine_tuned",
+                "episode_length_mean_no_fine_tuned",
+            ]
+        });
+        linechart_filter_fine_tuned.draw();
+        linechart_dashboard.draw(linechart_data_table);
+    };
+
+    function get_selectedValues_list() {
+        var l_fine_tuned = [];
+        var l_no_fine_tuned = [];
+        var labels = linechart_data_table.getDistinctValues(
+            linechart_data_table.getColumnIndex("label"));
+
+        for (var i = 0; i < labels.length; i++) {
+            if (labels[i].endsWith("no_fine_tuned")) {
+                l_fine_tuned.push(labels[i])
+            } else (
+                l_no_fine_tuned.push(labels[i])
+            )
+        }
+
+        return [l_fine_tuned, l_no_fine_tuned]
     }
+
+    linechart_no_fine_tuned = function () {
+        linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[0]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
+
+    linechart_fine_tuned = function () {
+        linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[1]});
+        linechart_dashboard.draw(linechart_data_table);
+    }
+
 
 }
