@@ -99,6 +99,56 @@ function drawChart() {
         dashboard.draw(data_table);
     }
 
+        function build_line_chartdashboard() {
+        chart = new google.visualization.ChartWrapper(
+            {
+                "chartType": "ScatterChart",
+                "containerId": "linechart_div",
+                "options": {
+                    "tooltip": {"isHtml": true, "trigger": "selection"},
+                    // "title": figure_info['title'],
+                    "hAxis": {
+                        "title": figure_info['xlabel'],
+                        "minValue": figure_info['xlim'] ? figure_info['xlim'][0] : null,
+                        "maxValue": figure_info['xlim'] ? figure_info['xlim'][1] : null
+                    },
+                    "vAxis": {
+                        "title": figure_info['ylabel'],
+                        "minValue": figure_info['ylim'] ? figure_info['ylim'][0] : null,
+                        "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
+                    },
+                    "legend": "none",
+                    "aggregationTarget": "none",
+                    "selectionMode": "multiple",
+                    "theme": "maximized",
+                    "fontSize": 12
+                },
+                "view": {'columns': cluster_column_indices} // show all points regard of std.
+            });
+
+        filter = new google.visualization.ControlWrapper({
+            'controlType': 'CategoryFilter',
+            'containerId': 'linechart_control_div',
+            'options': {
+                'filterColumnLabel': "method",
+                // 'filterColumnIndex': 4,
+                'ui': {
+                    // 'label': 'Choose one of the Representation Methods: ',
+                    'allowNone': false,
+                    "allowMultiple": false,
+                    "allowTyping": false,
+                    // "labelStacking": 'vertical',
+                    // 'cssClass': 'step1'
+                }
+            },
+            'state': {'selectedValues': [rawData['figure_info']['methods'][0]]}
+        });
+        dashboard = new google.visualization.Dashboard(
+            document.getElementById('linechart_dashboard_div'));
+        dashboard.bind(filter, chart);
+        dashboard.draw(data_table);
+    }
+
     function get_exact_std(slider_value) {
         return figure_info['tensities'][slider_value]
     }
@@ -268,6 +318,7 @@ function drawChart() {
         build_slider();
         setup_data_table();
         build_dashboard();
+        build_line_chartdashboard();
         set_lim();
         flush();
     }
