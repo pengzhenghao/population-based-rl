@@ -127,7 +127,7 @@ function drawChart() {
                             "title": "Normalized Distance"
                         },
                     },
-                    "tooltip": {"trigger": "selection"},
+                    "tooltip": {"trigger": "both"},
                     // "title": figure_info['title'],
                     "hAxis": {
                         // "gridlines": {"color": 'none'},
@@ -310,26 +310,29 @@ function drawChart() {
         }
     }
 
-
-    function setup_linechart_data_table() {
+    function setup_all_linechart_data_table() {
         var newData;
-        if (current_tune_flag) {
-            newData = rawData['linechart_data']['fine_tuned']
-        } else {
-            newData = rawData['linechart_data']['no_fine_tuned']
-        }
-        var tmp_datatable = new google.visualization.DataTable(newData);
+        newData = rawData['linechart_data']['fine_tuned'];
         linechart_data_table = new google.visualization.DataTable();
-        linechart_data_table.addColumn("number", "intensity", "intensity");
+        setup_linechart_data_table(newData);
+        newData = rawData['linechart_data']['no_fine_tuned'];
+        linechart_series_options = setup_linechart_data_table(newData, false);
+        return linechart_series_options
+    }
 
+    var linechart_series_options = {};
+    var label_column_index_map = {};
+
+    function setup_linechart_data_table(newData, need_add_column = true) {
+        var tmp_datatable = new google.visualization.DataTable(newData);
+        linechart_data_table.addColumn("number", "intensity", "intensity");
         var unique_labels = tmp_datatable.getDistinctValues(
             tmp_datatable.getColumnIndex("label"));
 
         linechart_cluster_column_indices = [0];
 
-        var linechart_series_options = {};
+        var tune_label = need_add_column ? "_fine_tuned" : "_no_fine_tuned";
 
-        var label_column_index_map = {};
         for (var i = 0; i < unique_labels.length; i++) {
             if (unique_labels[i].startsWith("episode")) {
                 linechart_series_options[i] = {
@@ -338,7 +341,7 @@ function drawChart() {
             } else {
                 linechart_series_options[i] = {"targetAxisIndex": 2}
             }
-            linechart_data_table.addColumn("number", unique_labels[i], unique_labels[i]);
+            linechart_data_table.addColumn("number", unique_labels[i] + tune_label, unique_labels[i] + tune_label);
             label_column_index_map[unique_labels[i]] = i + 1;
             linechart_cluster_column_indices.push(i + 1);
         }
@@ -397,7 +400,9 @@ function drawChart() {
     function init() {
         build_slider();
         setup_data_table();
-        var linechart_series_options = setup_linechart_data_table();
+
+
+        var linechart_series_options = setup_all_linechart_data_table();
         build_dashboard();
         build_line_chartdashboard(linechart_series_options);
         set_lim();
@@ -462,7 +467,14 @@ function drawChart() {
         // });
         linechart_filter.setState({"selectedValues": ["episode_reward_mean"]});
         linechart_dashboard.draw(linechart_data_table);
-    }
-    ;
+    };
+
+    clearest_collecion = function () {
+        linechart_filter.setState({
+            "selectedValues": ["episode_reward_mean", "cka_mean"]
+        });
+        // linechart_filter.setState({"selectedValues": ["episode_reward_mean"]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
 
 }

@@ -169,12 +169,12 @@ Placeholder for this html file:
             Step 4: Play with the experiment's result figure
         </th>
     </tr>
-<!--    <tr>-->
-<!--        <td>-->
-<!--            Note that we do not provides videos of the not fine-tuned agents.-->
-<!--            Current: <b><span id="finetune"></span></b>-->
-<!--        </td>-->
-<!--    </tr>-->
+    <!--    <tr>-->
+    <!--        <td>-->
+    <!--            Note that we do not provides videos of the not fine-tuned agents.-->
+    <!--            Current: <b><span id="finetune"></span></b>-->
+    <!--        </td>-->
+    <!--    </tr>-->
     <tr align="center">
         <td>
             <div id="linechart_dashboard_div">
@@ -182,9 +182,18 @@ Placeholder for this html file:
                     <div id="linechart_div"
                          style="width: 900px; height: 600px; "></div>
                 </div>
-                <div style="width: 900px; padding: 2em">
-                    <div id="linechart_control_div"></div>
-                </div>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div style="width: 440px; padding: 2em">
+                <div id="linechart_control_div"></div>
+            </div>
+        </td>
+        <td>
+            <div style="width: 440px; padding: 2em">
+                <div id="linechart_control_div2"></div>
             </div>
         </td>
     </tr>
@@ -193,6 +202,14 @@ Placeholder for this html file:
             <button style="width:20em; margin: 1em 1em 1em 2em;;"
                     onclick="remove_selection();">
                 Remove all selection
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="clearest_collecion();">
+                Clearest collection (Click Me!)
             </button>
         </td>
     </tr>
