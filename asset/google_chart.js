@@ -114,7 +114,7 @@ function drawChart() {
                     "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
-                        // "position": "left",
+                        "position": "bottom",
                         "textStyle": {"fontSize": 11}
                     },
                     "series": linechart_series_options,
