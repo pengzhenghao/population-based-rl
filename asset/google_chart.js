@@ -46,7 +46,8 @@ function drawChart() {
     const figure_info = rawData['figure_info'];
     const tensity_multiplier = figure_info['tensity_multiplier'];
 
-    var dashboard, slider, filter, chart, linechart_dashboard;
+    var dashboard, slider, filter, chart, linechart_dashboard,
+        linechart_filter, linechart_chart;
 
     var cluster_column_indices, linechart_cluster_column_indices;
 
@@ -101,7 +102,7 @@ function drawChart() {
     }
 
     function build_line_chartdashboard(linechart_series_options) {
-        var linechart_chart = new google.visualization.ChartWrapper(
+        linechart_chart = new google.visualization.ChartWrapper(
             {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
@@ -126,7 +127,7 @@ function drawChart() {
                             "title": "Normalized Distance"
                         },
                     },
-                    "tooltip": {"isHtml": true, "trigger": "selection"},
+                    "tooltip": {"trigger": "selection"},
                     // "title": figure_info['title'],
                     "hAxis": {
                         // "gridlines": {"color": 'none'},
@@ -141,22 +142,22 @@ function drawChart() {
                         // "maxValue": figure_info['ylim'] ? figure_info['ylim'][1] : null
                     },
                     // "legend": "none",
-                    "aggregationTarget": "none",
-                    "selectionMode": "multiple",
+                    // "aggregationTarget": "none",
+                    // "selectionMode": "multiple",
                     // "theme": "maximized",
                     // "fontSize": 12
                 },
                 "view": {'columns': linechart_cluster_column_indices} // show all points regard of std.
             });
 
-        var linechart_filter = new google.visualization.ControlWrapper({
+        linechart_filter = new google.visualization.ControlWrapper({
             'controlType': 'CategoryFilter',
             'containerId': 'linechart_control_div',
             'options': {
                 'filterColumnLabel': "label",
                 'ui': {
                     'label': 'Distance Measurements',
-                    'allowNone': false,
+                    'allowNone': true,
                     "allowMultiple": true,
                     "allowTyping": false,
                     "labelStacking": 'vertical',
@@ -452,6 +453,11 @@ function drawChart() {
         } else {
             button.innerHTML = "Click to enable clustering";
         }
-    }
+    };
+
+    remove_selection = function () {
+        linechart_filter.setState({"selectedValues": ["cka_mean"]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
 
 }

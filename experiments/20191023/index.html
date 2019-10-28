@@ -125,9 +125,11 @@ Placeholder for this html file:
     <tr align="center">
         <td>
             <div id="dashboard_div">
-                <div id="chart_div"
-                     style="width: 900px; height: 900px; padding: 2em"></div>
-                <!--                Choose a clustering algorithm.-->
+                <div style="padding: 2em">
+                    <div id="chart_div"
+                         style="width: 900px; height: 900px;">
+                    </div>
+                </div>
             </div>
         </td>
     </tr>
@@ -162,21 +164,41 @@ Placeholder for this html file:
             </button>
         </td>
     </tr>
+    <tr>
+        <th class="step">
+            Step 4: Play with the experiment's result figure
+        </th>
+    </tr>
+<!--    <tr>-->
+<!--        <td>-->
+<!--            Note that we do not provides videos of the not fine-tuned agents.-->
+<!--            Current: <b><span id="finetune"></span></b>-->
+<!--        </td>-->
+<!--    </tr>-->
     <tr align="center">
         <td>
             <div id="linechart_dashboard_div">
-                <div id="linechart_div"
-                     style="width: 900px; height: 600px; padding: 2em"></div>
-                <!--                Choose a clustering algorithm.-->
+                <div style="padding: 2em">
+                    <div id="linechart_div"
+                         style="width: 900px; height: 600px; "></div>
+                </div>
+                <div style="width: 900px; padding: 2em">
+                    <div id="linechart_control_div"></div>
+                </div>
             </div>
         </td>
     </tr>
     <tr>
         <td>
-            <div id="linechart_control_div" style="width: 900px; padding: 2em">></div>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="remove_selection();">
+                Remove all selection
+            </button>
         </td>
     </tr>
 </table>
+
+
 <div style="max-width: 900px; padding-top:10em; padding-bottom: 4em; text-align: center; font-size: 50%">
     The data used at this web page was collected on <span
         id="update_date"></span>.<br>
