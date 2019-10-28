@@ -120,7 +120,7 @@ function drawChart() {
                     },
                     // "legend": "none",
                     "aggregationTarget": "none",
-                    // "selectionMode": "multiple",
+                    "selectionMode": "multiple",
                     // "theme": "maximized",
                     // "fontSize": 12
                 },
@@ -132,17 +132,18 @@ function drawChart() {
             'containerId': 'linechart_control_div',
             'options': {
                 'filterColumnLabel': "label",
-                // 'filterColumnIndex': 4,
                 'ui': {
                     'label': 'Distance Measurements',
                     'allowNone': false,
                     "allowMultiple": true,
                     "allowTyping": false,
-                    "labelStacking": 'vertical',
-                    // 'cssClass': 'step1'
+                    // "labelStacking": 'vertical',
                 }
             },
-            // 'state': {'selectedValues': [rawData['figure_info']['methods'][0]]}
+            'state': {
+                'selectedValues': linechart_data_table.getDistinctValues(
+                    linechart_data_table.getColumnIndex("label"))
+            }
         });
         linechart_dashboard = new google.visualization.Dashboard(
             document.getElementById('linechart_dashboard_div'));
@@ -228,16 +229,13 @@ function drawChart() {
                     old_data_table.getValue(i, 5)
                 );
             }
-
             new_data_table.setCell(i, tensity_col_id,
                 old_data_table.getValue(i, 3));
             new_data_table.setCell(i, method_col_id,
                 old_data_table.getValue(i, 4));
             new_data_table.setRowProperties(i, old_data_table.getRowProperties(i));
-
-
         }
-        console.log(new_data_table);
+        // console.log(new_data_table);
         return new_data_table;
     }
 
@@ -312,8 +310,9 @@ function drawChart() {
             linechart_cluster_column_indices.push(i + 1);
         }
         linechart_data_table.addColumn("string", "label", "label");
-        linechart_data_table.addRows(tmp_datatable.getNumberOfRows());
 
+        // linechart_cluster_column_indices.push(linechart_data_table.getColumnIndex("label"));
+        linechart_data_table.addRows(tmp_datatable.getNumberOfRows());
 
         for (var row = 0; row < tmp_datatable.getNumberOfRows(); row++) {
             linechart_data_table.setCell(row, 0, tmp_datatable.getValue(
@@ -326,47 +325,19 @@ function drawChart() {
             } else {
                 observe_column = 3
             }
-
             linechart_data_table.setCell(
                 row,
                 label_column_index_map[tmp_datatable.getValue(row, 2)],
                 tmp_datatable.getValue(row, observe_column));
+
+            linechart_data_table.setCell(
+                row,
+                linechart_data_table.getColumnIndex("label"),
+                tmp_datatable.getValue(
+                    row, 2
+                ));
         }
-
-
-        // Fill the tooltip
-        // data_table.addColumn(
-        //     {
-        //         'type': 'string',
-        //         'role': 'tooltip',
-        //         'p': {'html': true}
-        //     }
-        // );
-        // var url, cell_html, row, extra;
-
-        //     if (data_table.getRowProperty(row, "path")) {
-        //         url = prefix + data_table.getRowProperty(row, "path").replace("./", "");
-        //         cell_html = createCustomHTMLContent(url)
-        //     } else {
-        //         cell_html = '<p>No Video Provided</p>';
-        //     }
-        //     if (data_table.getRowProperty(row, "reward")) {
-        //         extra = "Reward: " + data_table.getRowProperty(row, "reward").toFixed(1);
-        //     }
-        //     if (extra !== null) {
-        //         cell_html = cell_html +
-        //             '<br><p style="max-width: 80px;' +
-        //             'word-wrap: break-word">' + extra + '</p>';
-        //     }
-        //     cell_html = '<dev style="padding:0 0 0 0">' + cell_html
-        //         + '</dev>';
-        //     data_table.setCell(row, data_table.getNumberOfColumns() - 1, cell_html);
-        // }
-        // if (current_color_flag) {
-        //     data_table = parse_data_table(data_table);
-        // } else {
-        //     cluster_column_indices = [0, 1, 5];
-        // }
+        console.log(linechart_data_table);
     }
 
     function flush() {
