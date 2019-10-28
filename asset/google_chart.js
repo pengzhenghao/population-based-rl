@@ -108,6 +108,7 @@ function drawChart() {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
+                    "aggregationTarget": "none",
                     'chartArea': {'width': '80%', 'height': '80%'},
                     'pointSize': 4,
                     "curveType": "function",
@@ -489,6 +490,10 @@ function drawChart() {
 
     clear_selection = function () {
         chart.getChart().setSelection();
+    };
+
+    clear_selection_linechart = function (){
+        linechart_chart.getChart().setSelection();
     };
 
     change_color = function () {
