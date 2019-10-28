@@ -106,7 +106,11 @@ function drawChart() {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
-                    'legend': {"position": "bottom", "textStyle": {"fontSize": 11}},
+                    "interpolateNulls": true,
+                    'legend': {
+                        "position": "bottom",
+                        "textStyle": {"fontSize": 11}
+                    },
                     "series": linechart_series_options,
                     "vAxes": {
                         0: {
@@ -163,10 +167,13 @@ function drawChart() {
                     linechart_data_table.getColumnIndex("label"))
             }
         });
+
+        var linechart_data_view = new google.visualization.DataView(linechart_data_table);
+
         linechart_dashboard = new google.visualization.Dashboard(
             document.getElementById('linechart_dashboard_div'));
         linechart_dashboard.bind(linechart_filter, linechart_chart);
-        linechart_dashboard.draw(linechart_data_table);
+        linechart_dashboard.draw(linechart_data_view);
     }
 
     function get_exact_std(slider_value) {
@@ -319,7 +326,6 @@ function drawChart() {
 
         linechart_cluster_column_indices = [0];
 
-
         var linechart_series_options = {};
 
         var label_column_index_map = {};
@@ -360,7 +366,6 @@ function drawChart() {
                     row, 2
                 ));
         }
-        // console.log(linechart_data_table);
         return linechart_series_options
     }
 
@@ -414,8 +419,6 @@ function drawChart() {
         chart.setOption("vAxis.viewWindow.max", ylim[1] + dy);
     }
 
-
-// Change method
     google.visualization.events.addListener(filter, 'statechange', set_lim);
 
     change2FineTuned = function () {
