@@ -5,6 +5,8 @@ var data_table;
 var linechart_data_table;
 var current_tune_flag = true;
 var current_color_flag = true;
+var current_relative_distance_flag = true;
+var linechart_series_options;
 var current_tensity = 0;
 var prefix = "";
 var rawData = $.parseJSON($.ajax({
@@ -12,8 +14,6 @@ var rawData = $.parseJSON($.ajax({
     dataType: "json",
     async: false
 }).responseText);
-
-// var chart;
 
 function createCustomHTMLContent(videoPath) {
     return "" +
@@ -102,20 +102,19 @@ function drawChart() {
         dashboard.draw(data_table);
     }
 
-    function build_line_chartdashboard(linechart_series_options) {
+    function build_line_chartdashboard() {
         linechart_chart = new google.visualization.ChartWrapper(
             {
                 "chartType": "LineChart",
                 "containerId": "linechart_div",
                 "options": {
-                    'chartArea': {'width': '90%', 'height': '80%'},
+                    'chartArea': {'width': '80%', 'height': '80%'},
                     'pointSize': 4,
                     "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
-                        "position": "bottom",
-                        "textStyle": {"fontSize": 11},
-                        "maxLines": 10,
+                        // "position": "left",
+                        "textStyle": {"fontSize": 11}
                     },
                     "series": linechart_series_options,
                     "vAxes": {
@@ -137,6 +136,7 @@ function drawChart() {
                         },
                     },
                     "tooltip": {"trigger": "both"},
+                    "selectionMode": "multiple",
                     "hAxis": {
                         "title": figure_info['xlabel'],
                     },
@@ -193,6 +193,7 @@ function drawChart() {
         changeText("title_of_table", rawData['web_info']['title']);
         changeText("introduction", rawData['web_info']['introduction'], true);
         changeText("tensity", current_tensity);
+        changeText("relative_distance_button", "Show absolute value of distances");
 
         document.getElementById('disable_color_button').innerHTML =
             "Disable clustering";
@@ -305,7 +306,7 @@ function drawChart() {
     }
 
     function setup_linechart_data_table(need_add_column = true, row_offset = 0, col_offset = 0) {
-        var linechart_series_options = {};
+        linechart_series_options = {};
         var label_column_index_map = {};
 
         var newData = rawData['linechart_data']['fine_tuned'];
@@ -342,9 +343,6 @@ function drawChart() {
             linechart_cluster_column_indices.push(2 * i + 2);
         }
 
-
-        console.log(linechart_series_options);
-
         linechart_data_table.addColumn("string", "label", "label");
 
         linechart_data_table.addRows(tmp_datatable.getNumberOfRows() + tmp_datatable2.getNumberOfRows());
@@ -357,10 +355,9 @@ function drawChart() {
             ));
 
             // set y
-            var observe_column;
-            if (tmp_datatable.getValue(row, 2).startsWith("episode")) {
-                observe_column = 1
-            } else {
+            var observe_column = 1;
+
+            if (current_relative_distance_flag && !tmp_datatable.getValue(row, 2).startsWith("episode")) {
                 observe_column = 3
             }
             linechart_data_table.setCell(
@@ -438,14 +435,15 @@ function drawChart() {
     function init() {
         build_slider();
         setup_data_table();
-        var linechart_series_options = setup_linechart_data_table();
+        setup_linechart_data_table();
         build_dashboard();
-        build_line_chartdashboard(linechart_series_options);
+        build_line_chartdashboard();
         set_lim();
         flush();
     }
 
     init();
+
 
     function set_lim() {
         var method = filter.getState()['selectedValues'][0];
@@ -461,6 +459,10 @@ function drawChart() {
     }
 
     google.visualization.events.addListener(filter, 'statechange', set_lim);
+
+    google.visualization.events.addListener(linechart_chart, 'ready', function () {
+        $(".loader-wrapper").fadeOut("slow");
+    });
 
     change2FineTuned = function () {
         current_tune_flag = true;
@@ -523,6 +525,9 @@ function drawChart() {
         });
         linechart_filter_fine_tuned.draw();
         linechart_dashboard.draw(linechart_data_table);
+        if (current_relative_distance_flag) {
+            relative_distance();
+        }
     };
 
     function get_selectedValues_list() {
@@ -549,6 +554,20 @@ function drawChart() {
 
     linechart_fine_tuned = function () {
         linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[1]});
+        linechart_dashboard.draw(linechart_data_table);
+    };
+
+    relative_distance = function () {
+        current_relative_distance_flag = !current_relative_distance_flag;
+        if (current_relative_distance_flag) {
+            changeText("relative_distance_button", "Show absolute value of distances");
+            console.log(linechart_chart.getOption("vAxes.0.title"));
+            linechart_chart.setOption("vAxes.2.title", "Normalized Distance");
+        } else {
+            changeText("relative_distance_button", "Show relative value of distances");
+            linechart_chart.setOption("vAxes.2.title", "Absolute Distance");
+        }
+        setup_linechart_data_table();
         linechart_dashboard.draw(linechart_data_table);
     }
 

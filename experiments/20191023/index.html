@@ -1,6 +1,17 @@
 <html>
 <head>
     <style>
+        .loader-wrapper {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #666666;
+            justify-content: center;
+            align-items: center;
+        }
+
         .step {
             padding-top: 2em;
             padding-bottom: 0.5em;
@@ -48,6 +59,13 @@
     <script type="text/javascript" src="../../asset/google_chart.js"></script>
 </head>
 <body>
+<div class="loader-wrapper">
+        <span class="loader-inner">
+            <p style="font-size: xx-large; color: #000000; padding: 10em">
+                LOADING...
+            </p>
+        </span>
+</div>
 <!--
 Placeholder for this html file:
     1. title_of_table
@@ -196,6 +214,22 @@ Placeholder for this html file:
     <tr>
         <td>
             <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="clearest_collecion();">
+                Best figure (Click Me!)
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
+                    onclick="relative_distance();">
+                <span id="relative_distance_button"></span>
+            </button>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button style="width:20em; margin: 1em 1em 1em 2em;;"
                     onclick="remove_selection();">
                 Remove all selection
             </button>
@@ -204,20 +238,12 @@ Placeholder for this html file:
     <tr>
         <td>
             <button style="width:20em; margin: 1em 1em 1em 2em;;"
-                    onclick="clearest_collecion();">
-                Best figure (Click Me!)
-            </button>
-        </td>
-    </tr>
-        <tr>
-        <td>
-            <button style="width:20em; margin: 1em 1em 1em 2em;;"
                     onclick="linechart_fine_tuned();">
                 Only show fine-tuned
             </button>
         </td>
     </tr>
-        <tr>
+    <tr>
         <td>
             <button style="width:20em; margin: 1em 1em 1em 2em;;"
                     onclick="linechart_no_fine_tuned();">
