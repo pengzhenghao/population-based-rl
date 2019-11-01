@@ -109,13 +109,14 @@ function drawChart() {
                 "containerId": "linechart_div",
                 "options": {
                     "aggregationTarget": "none",
-                    'chartArea': {'width': '80%', 'height': '80%'},
+                    'chartArea': {'width': '80%', 'height': '65%'},
                     'pointSize': 4,
                     "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
-                        "position": "bottom",
-                        "textStyle": {"fontSize": 11}
+                        "position": "top",
+                        "textStyle": {"fontSize": 8.5},
+                        "maxLines": 10
                     },
                     "series": linechart_series_options,
                     "vAxes": {
@@ -164,12 +165,12 @@ function drawChart() {
             }
         });
 
-        var linechart_data_view = new google.visualization.DataView(linechart_data_table);
+        // var linechart_data_view = new google.visualization.DataView(linechart_data_table);
 
         linechart_dashboard = new google.visualization.Dashboard(
             document.getElementById('linechart_dashboard_div'));
         linechart_dashboard.bind(linechart_filter_fine_tuned, linechart_chart);
-        linechart_dashboard.draw(linechart_data_view);
+        linechart_dashboard.draw(linechart_data_table);
     }
 
     function get_exact_std(slider_value) {
@@ -306,7 +307,8 @@ function drawChart() {
         }
     }
 
-    function setup_linechart_data_table(need_add_column = true, row_offset = 0, col_offset = 0) {
+    function setup_linechart_data_table() {
+
         linechart_series_options = {};
         var label_column_index_map = {};
 
@@ -348,64 +350,41 @@ function drawChart() {
 
         linechart_data_table.addRows(tmp_datatable.getNumberOfRows() + tmp_datatable2.getNumberOfRows());
 
-        for (var row = 0; row < tmp_datatable.getNumberOfRows(); row++) {
 
+        function fill_row_for_linechart_data_table(tmp_dt, row, surfix, row_offset = 0) {
             // set x
-            linechart_data_table.setCell(row, 0, tmp_datatable.getValue(
+            linechart_data_table.setCell(row + row_offset, 0, tmp_dt.getValue(
                 row, 0
             ));
 
             // set y
             var observe_column = 1;
-
-            if (current_relative_distance_flag && !tmp_datatable.getValue(row, 2).startsWith("episode")) {
-                observe_column = 3
+            if (current_relative_distance_flag && !tmp_dt.getValue(row, 2).startsWith("episode")) {
+                observe_column = 3;
             }
             linechart_data_table.setCell(
-                row,
-                linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_fine_tuned"),
-                tmp_datatable.getValue(row, observe_column));
+                row + row_offset,
+                linechart_data_table.getColumnIndex(tmp_dt.getValue(row, 2) + surfix),
+                tmp_dt.getValue(row, observe_column));
 
             // set label
             linechart_data_table.setCell(
-                row,
+                row + row_offset,
                 linechart_data_table.getColumnIndex("label"),
-                tmp_datatable.getValue(
+                tmp_dt.getValue(
                     row, 2
-                ) + "_fine_tuned");
+                ) + surfix);
+        }
+
+        for (var row = 0; row < tmp_datatable.getNumberOfRows(); row++) {
+            fill_row_for_linechart_data_table(tmp_datatable, row, "_fine_tuned");
         }
 
         var offset = tmp_datatable.getNumberOfRows();
-
         for (var row = 0; row < (tmp_datatable2.getNumberOfRows()); row++) {
-
-            // set x
-            linechart_data_table.setCell(row + offset, 0, tmp_datatable2.getValue(
-                row, 0
-            ));
-
-            // set y
-            var observe_column;
-            if (tmp_datatable2.getValue(row, 2).startsWith("episode")) {
-                observe_column = 1
-            } else {
-                observe_column = 3
-            }
-            linechart_data_table.setCell(
-                row + offset,
-                linechart_data_table.getColumnIndex(tmp_datatable2.getValue(row, 2) + "_no_fine_tuned"),
-                tmp_datatable2.getValue(row, observe_column));
-
-            // set label
-            linechart_data_table.setCell(
-                row + offset,
-                linechart_data_table.getColumnIndex("label"),
-                tmp_datatable2.getValue(
-                    row, 2
-                ) + "_no_fine_tuned");
+            fill_row_for_linechart_data_table(
+                tmp_datatable2, row, "_no_fine_tuned", offset);
         }
-
-
         return linechart_series_options
     }
 
@@ -492,7 +471,7 @@ function drawChart() {
         chart.getChart().setSelection();
     };
 
-    clear_selection_linechart = function (){
+    clear_selection_linechart = function () {
         linechart_chart.getChart().setSelection();
     };
 
@@ -554,6 +533,7 @@ function drawChart() {
 
     linechart_no_fine_tuned = function () {
         linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[0]});
+        linechart_chart.draw(linechart_data_table, );
         linechart_dashboard.draw(linechart_data_table);
     };
 
@@ -566,7 +546,7 @@ function drawChart() {
         current_relative_distance_flag = !current_relative_distance_flag;
         if (current_relative_distance_flag) {
             changeText("relative_distance_button", "Show absolute value of distances");
-            console.log(linechart_chart.getOption("vAxes.0.title"));
+            // console.log(linechart_chart.getOption("vAxes.0.title"));
             linechart_chart.setOption("vAxes.2.title", "Normalized Distance");
         } else {
             changeText("relative_distance_button", "Show relative value of distances");
