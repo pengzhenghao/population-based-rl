@@ -109,13 +109,14 @@ function drawChart() {
                 "containerId": "linechart_div",
                 "options": {
                     "aggregationTarget": "none",
-                    'chartArea': {'width': '80%', 'height': '80%'},
+                    'chartArea': {'width': '80%', 'height': '65%'},
                     'pointSize': 4,
                     "curveType": "function",
                     "interpolateNulls": true,
                     'legend': {
-                        "position": "bottom",
-                        "textStyle": {"fontSize": 11}
+                        "position": "top",
+                        "textStyle": {"fontSize": 8.5},
+                        "maxLines": 10
                     },
                     "series": linechart_series_options,
                     "vAxes": {
@@ -164,12 +165,12 @@ function drawChart() {
             }
         });
 
-        var linechart_data_view = new google.visualization.DataView(linechart_data_table);
+        // var linechart_data_view = new google.visualization.DataView(linechart_data_table);
 
         linechart_dashboard = new google.visualization.Dashboard(
             document.getElementById('linechart_dashboard_div'));
         linechart_dashboard.bind(linechart_filter_fine_tuned, linechart_chart);
-        linechart_dashboard.draw(linechart_data_view);
+        linechart_dashboard.draw(linechart_data_table);
     }
 
     function get_exact_std(slider_value) {
@@ -532,6 +533,7 @@ function drawChart() {
 
     linechart_no_fine_tuned = function () {
         linechart_filter_fine_tuned.setState({"selectedValues": get_selectedValues_list()[0]});
+        linechart_chart.draw(linechart_data_table, );
         linechart_dashboard.draw(linechart_data_table);
     };
 
